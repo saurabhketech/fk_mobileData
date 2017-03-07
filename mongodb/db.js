@@ -7,7 +7,8 @@ module.exports = function() {
 
     // create schema 
     var details = mongoose.Schema({}, {
-        collection: 'details'
+        collection: 'details',
+        strict: false
     });
 
     var fetch_data = conn.model('users', details);

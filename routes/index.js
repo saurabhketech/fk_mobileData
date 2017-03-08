@@ -8,12 +8,13 @@ var unirest = require('unirest');
 
 var fkc = aff.createClient({
     FkAffId: 'saurabhke', //as obtained from [Flipkart Affiliates API](https://affiliate.flipkart.com/api-docs/)
-    FkAffToken: '1dceaa82345d4a9389164b70584df682',
+    FkAffToken: '32b4ac473df64ff8b39ab980bfe0dd4b',
     responseType: 'json'
 });
 var category = [];
 var product = [];
-router.all('/flipkart', function(req, res) {
+<!------- fetching category-------------->
+router.all('/flipkart', function(req, res, next) {
     fkc.getCategoryFeed({
         trackingId: 'saurabhke'
     }, function(err, result) {
@@ -27,29 +28,33 @@ router.all('/flipkart', function(req, res) {
         }
     });
 });
-
+<!-----------fetching product------------>
 router.all('/flipkart/product', function(req, res, next) {
     fkc.getProductsFeed({
         trackingId: 'saurabhke',
-        url: 'https://affiliate-api.flipkart.net/affiliate/feeds/saurabhke/category/tyy-4io.json?expiresAt=1488901773524&sig=a1b7b2a918f91aa6866a826a3f14889a'
+        url: "https://affiliate-api.flipkart.net/affiliate/feeds/saurabhke/category/tyy-4io.json?expiresAt=1488992587513&sig=068584d90d91d7c0b06a9bcc3d765e30"
     }, function(err, result) {
         if (!err) {
             product = JSON.parse(result);
-            for (var i = 0; i < product.productInfoList.length; i++) {
-                var record = new req.fetch(product.productInfoList[i].productBaseInfo);
-                record.save(function(err, save) {
-                    if (err) {
-                        req.err = "not fetched"
-                        next(req.err)
+            var mobileData = product.productInfoList;
+            async.eachSeries(mobileData, save, function(err, result) {
+                res.json({ status: 1, message: " mobile data saved" })
+            })
+
+            function save(mobileData, callback) {
+                var data = new req.fetch(mobileData);
+                data.save(function(err, save) {
+                    if (!err) {
+                        callback();
+                    } else {
+                        req.err = "some error"
+                        next();
                     }
                 })
             }
-            if (i >= product.productInfoList.length) {
-                res.json("data saved");
-                next();
-            }
         } else {
             req.err = "some error"
+            console.log(err)
             next(req.err);
         }
     });

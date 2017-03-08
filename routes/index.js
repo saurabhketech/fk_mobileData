@@ -4,6 +4,7 @@ var request = require('request');
 var zlib = require('zlib');
 var async = require('async');
 var aff = require('flipkart-affiliate');
+var unirest = require('unirest');
 
 var fkc = aff.createClient({
     FkAffId: 'saurabhke', //as obtained from [Flipkart Affiliates API](https://affiliate.flipkart.com/api-docs/)
@@ -53,5 +54,29 @@ router.all('/flipkart/product', function(req, res, next) {
         }
     });
 });
+
+router.all('/fetch/nav/:scheme', function(req, res) {
+    var scheme = req.params.scheme
+    getstatus('https://mutualfundsnav.p.mashape.com/', res, scheme, function(err, html) {
+        if (err) {
+            console.log(err);
+            process.exit();
+        }
+        // console.log(html);
+    });
+});
+
+function getstatus(url, res, scheme, callback) {
+    unirest.post(url)
+        .header("X-Mashape-Key", "PLspRQdYTTmsht6q599gjUFpoa2Rp1mXkpOjsnqC3mleEzysvw")
+        .header("Content-Type", "application/json")
+        .header("Accept", "application/json")
+        .send({ "scodes": [scheme] })
+        .end(function(result) {
+            // console.log(result.status, result.headers, result.body);
+            res.send(result.body);
+
+        });
+}
 
 module.exports = router;
